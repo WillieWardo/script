@@ -1,0 +1,57 @@
+local LocalPlayer = game:GetService("Players").LocalPlayer
+local RunService = game:GetService("RunService")
+
+-- Configuration for Prison Life tools
+local OrbitSettings = {
+    {"Keycard", 3, 2, 40, 0},    -- Close, high, fast orbit
+    {"M9", 4, 0, 25, 120},        -- Medium, waist level, medium speed
+    {"Taser", 5, -1, 15, 240}     -- Far, low, slow orbit
+}
+
+local ToolData = {}
+local connection
+
+local function StopPrisonOrbit()
+    if connection then
+        connection:Disconnect()
+        connection = nil
+    end
+    for toolName, data in pairs(ToolData) do
+        if data.Tool and data.Tool.Parent then
+            data.Tool.Grip = CFrame.new() -- Reset grip
+        end
+    end
+    ToolData = {}
+end
+
+local function StartPrisonOrbit()
+    StopPrisonOrbit()
+    connection = RunService.RenderStepped:Connect(function(deltaTime)
+        local character = LocalPlayer.Character
+        if not character then return end
+        
+        for _, settings in ipairs(OrbitSettings) do
+            local toolName, radius, height, speed, offset = unpack(settings)
+            local tool = character:FindFirstChild(toolName) or LocalPlayer.Backpack:FindFirstChild(toolName)
+            
+            if tool and tool:IsA("Tool") then
+                if not ToolData[toolName] then
+                    ToolData[toolName] = { Tool = tool, Angle = offset }
+                    tool.Grip = CFrame.new(radius, height, 0)
+                end
+                ToolData[toolName].Angle = (ToolData[toolName].Angle + speed * deltaTime) % 360
+                local angleRad = math.rad(ToolData[toolName].Angle)
+                local x, z = math.cos(angleRad) * radius, math.sin(angleRad) * radius
+                tool.Grip = CFrame.new(x, height, z) * CFrame.Angles(0, angleRad, 0)
+            end
+        end
+    end)
+end
+
+-- Auto-start when character loads
+LocalPlayer.CharacterAdded:Connect(StartPrisonOrbit)
+if LocalPlayer.Character then StartPrisonOrbit() end
+
+-- Global functions to control the effect
+_G.StopPrisonOrbit = StopPrisonOrbit
+_G.StartPrisonOrbit = StartPrisonOrbit
