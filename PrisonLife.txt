@@ -1,7 +1,10 @@
 local Player = game:GetService("Players").LocalPlayer
 local UIS = game:GetService("UserInputService")
 local CoreGui = game:GetService("CoreGui")
+local RunService = game:GetService("RunService")
+local TweenService = game:GetService("TweenService")
 
+-- Create main GUI
 local ScreenGui = Instance.new("ScreenGui")
 ScreenGui.Name = "PrisonLifeGUI"
 ScreenGui.Parent = CoreGui
@@ -9,8 +12,8 @@ ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
 
 local MainFrame = Instance.new("Frame")
 MainFrame.Name = "MainFrame"
-MainFrame.Size = UDim2.new(0, 200, 0, 175)
-MainFrame.Position = UDim2.new(0.5, -100, 0.5, -87.5)
+MainFrame.Size = UDim2.new(0, 200, 0, 310)
+MainFrame.Position = UDim2.new(0.5, -100, 0.5, -130)
 MainFrame.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
 MainFrame.BorderSizePixel = 1
 MainFrame.BorderColor3 = Color3.fromRGB(80, 80, 80)
@@ -29,15 +32,14 @@ TitleBar.Parent = MainFrame
 -- RGB line under the title
 local RGBLine = Instance.new("Frame")
 RGBLine.Name = "RGBLine"
-RGBLine.Size = UDim2.new(1, 0, 0, 2) -- thin horizontal line
+RGBLine.Size = UDim2.new(1, 0, 0, 2)
 RGBLine.Position = UDim2.new(0, 0, 1, 0)
 RGBLine.BorderSizePixel = 0
-RGBLine.BackgroundColor3 = Color3.fromRGB(255, 0, 0) -- start red
+RGBLine.BackgroundColor3 = Color3.fromRGB(255, 0, 0)
 RGBLine.Parent = TitleBar
 
 -- Smooth rainbow cycle
 task.spawn(function()
-    local TweenService = game:GetService("TweenService")
     local colors = {
         Color3.fromRGB(255, 0, 0),   -- Red
         Color3.fromRGB(255, 127, 0), -- Orange
@@ -57,7 +59,6 @@ task.spawn(function()
         end
     end
 end)
-
 
 local TitleText = Instance.new("TextLabel")
 TitleText.Name = "TitleText"
@@ -98,6 +99,17 @@ UIListLayout.Padding = UDim.new(0, 5)
 UIListLayout.SortOrder = Enum.SortOrder.LayoutOrder
 UIListLayout.Parent = ContentFrame
 
+-- Variables for toggle states
+local noclipEnabled = false
+local walkspeedEnabled = false
+local autoGunsEnabled = false
+local killAuraEnabled = false
+local originalWalkSpeed = 16
+local noclipConnection = nil
+local killAuraConnection = nil
+local walkspeedConnection = nil
+local autoGunsConnection = nil
+
 local function createButton(name, text, order)
     local button = Instance.new("TextButton")
     button.Name = name
@@ -114,31 +126,76 @@ local function createButton(name, text, order)
     return button
 end
 
+-- Create all buttons
 local AllGunsButton = createButton("AllGunsButton", "penis (lol)", 1)
-local GetAllGunsButton = createButton("GetAllGunsButton", "guns", 2)
-local JerkyButton = createButton("JerkyButton", "jerky", 3)
+local GetAllGunsButton = createButton("GetAllGunsButton", "Get All Guns", 2)
+local JerkyButton = createButton("JerkyButton", "Jerky Script", 3)
 local ESPButton = createButton("ESPButton", "ESP", 4)
+local WalkSpeedButton = createButton("WalkSpeedButton", "+10 WalkSpeed: OFF", 5)
+local NoclipButton = createButton("NoclipButton", "Noclip: OFF", 6)
+local AutoGunsButton = createButton("AutoGunsButton", "Auto Guns: OFF", 7)
+local KillAuraButton = createButton("KillAuraButton", "Kill Aura: OFF", 8)
 
+-- Popup function
+local function ShowPopup(text, color)
+    color = color or Color3.fromRGB(30, 30, 30)
+    
+    local popup = Instance.new("TextLabel")
+    popup.Size = UDim2.new(0, 300, 0, 60)
+    popup.Position = UDim2.new(0.5, -125, 0, -70)
+    popup.BackgroundColor3 = color
+    popup.BorderSizePixel = 0
+    popup.Text = text
+    popup.TextColor3 = Color3.fromRGB(255, 255, 255)
+    popup.TextSize = 20
+    popup.Font = Enum.Font.GothamBold
+    popup.Parent = ScreenGui
+    popup.AnchorPoint = Vector2.new(0.5, 0)
+    popup.TextTransparency = 1
+    popup.BackgroundTransparency = 1
+
+    TweenService:Create(popup, TweenInfo.new(0.5), {
+        TextTransparency = 0,
+        BackgroundTransparency = 0.1,
+        Position = UDim2.new(0.5, -125, 0, 20)
+    }):Play()
+
+    task.wait(2.5)
+
+    TweenService:Create(popup, TweenInfo.new(0.5), {
+        TextTransparency = 1,
+        BackgroundTransparency = 1,
+        Position = UDim2.new(0.5, -125, 0, -70)
+    }):Play()
+
+    task.wait(1)
+    popup:Destroy()
+end
+
+-- All Guns function
 local function AllGuns()
-    wait(1)
+    if not Player.Character then
+        ShowPopup("No character found!", Color3.fromRGB(150, 0, 0))
+        return
+    end
+    
     for i, v in pairs(Player.Character:GetChildren()) do
         if v:IsA("Tool") then
             v.Parent = Player.Backpack
         end
     end
 
-    wait(0.5)
-    if Player.Backpack:FindFirstChild("M9") then
-        Player.Backpack.M9.Parent = Player.Character
-    end
-    if Player.Backpack:FindFirstChild("AK-47") then
-        Player.Backpack["AK-47"].Parent = Player.Character
-    end
-    if Player.Backpack:FindFirstChild("Remington 870") then
-        Player.Backpack["Remington 870"].Parent = Player.Character
+    task.wait(0.5)
+    
+    local guns = {"M9", "AK-47", "Remington 870"}
+    for _, gunName in pairs(guns) do
+        if Player.Backpack:FindFirstChild(gunName) then
+            Player.Backpack[gunName].Parent = Player.Character
+        end
     end
 
-    wait()
+    task.wait(0.1)
+    
     if Player.Character:FindFirstChild("M9") then
         Player.Character.M9.GripPos = Vector3.new(0.9, 2, 0)
     end
@@ -149,56 +206,208 @@ local function AllGuns()
         Player.Character["AK-47"].GripPos = Vector3.new(0.9, 2, 6.4)
     end
 
-    wait()
-    for i, v in pairs(Player.Character:GetChildren()) do
-        if v:IsA("Tool") then
-            v.Parent = Player.Backpack
-        end
-    end
-
-    wait()
-    if Player.Backpack:FindFirstChild("M9") then
-        Player.Backpack.M9.Parent = Player.Character
-    end
-    if Player.Backpack:FindFirstChild("AK-47") then
-        Player.Backpack["AK-47"].Parent = Player.Character
-    end
-    if Player.Backpack:FindFirstChild("Remington 870") then
-        Player.Backpack["Remington 870"].Parent = Player.Character
-    end
+    ShowPopup("All guns equipped successfully!", Color3.fromRGB(0, 150, 0))
 end
 
+-- Get All Guns function
 local function GetAllGuns()
     local gun_tbl = {["Parent"] = nil, ["Position"] = nil}
     local gun_names = {"Remington 870", "AK-47", "M9"}
 
+    if not Player.Character or not Player.Character:FindFirstChild("HumanoidRootPart") then
+        ShowPopup("Character not ready!", Color3.fromRGB(150, 0, 0))
+        return
+    end
+
     local function get_gun(gun)
-        while not Player.Backpack:FindFirstChild(gun) do
-            if Player.Character and Player.Character:FindFirstChild("HumanoidRootPart") then
-                gun_tbl.Parent = workspace.Prison_ITEMS.giver:FindFirstChild(gun)
-                gun_tbl.Position = Player.Character.HumanoidRootPart.Position
-                workspace.Remote.ItemHandler:InvokeServer(gun_tbl)
-            end
-            task.wait(0.1)
+        if not workspace.Prison_ITEMS or not workspace.Prison_ITEMS.giver then
+            ShowPopup("Gun giver not found!", Color3.fromRGB(150, 0, 0))
+            return
         end
+        
+        local gunModel = workspace.Prison_ITEMS.giver:FindFirstChild(gun)
+        if not gunModel then
+            ShowPopup(gun .. " not found!", Color3.fromRGB(150, 0, 0))
+            return
+        end
+        
+        gun_tbl.Parent = gunModel
+        gun_tbl.Position = Player.Character.HumanoidRootPart.Position
+        workspace.Remote.ItemHandler:InvokeServer(gun_tbl)
     end
 
     for _, gun in pairs(gun_names) do
         get_gun(gun)
+        task.wait(0.5)
+    end
+    
+    ShowPopup("All guns collected successfully!", Color3.fromRGB(0, 150, 0))
+end
+
+-- ESP function
+local function LoadESP()
+    loadstring(game:HttpGet("https://raw.githubusercontent.com/Blissful4992/ESPs/refs/heads/main/2D%20Box%20ESP/ESP%20%2B%20Health%20Bars.lua"))()
+    ShowPopup("ESP loaded successfully!", Color3.fromRGB(0, 150, 0))
+end
+
+-- Noclip function
+local function Noclip()
+    noclipEnabled = not noclipEnabled
+    NoclipButton.Text = "Noclip: " .. (noclipEnabled and "ON" or "OFF")
+    
+    if noclipEnabled then
+        ShowPopup("Noclip enabled!", Color3.fromRGB(0, 150, 0))
+        
+        if noclipConnection then
+            noclipConnection:Disconnect()
+        end
+        
+        noclipConnection = RunService.Stepped:Connect(function()
+            if noclipEnabled and Player.Character then
+                for _, v in pairs(Player.Character:GetDescendants()) do
+                    if v:IsA("BasePart") and v.CanCollide then
+                        v.CanCollide = false
+                    end
+                end
+            end
+        end)
+    else
+        ShowPopup("Noclip disabled!", Color3.fromRGB(150, 0, 0))
+        if noclipConnection then
+            noclipConnection:Disconnect()
+            noclipConnection = nil
+        end
     end
 end
 
-local function LoadESP()
-    loadstring(game:HttpGet("https://raw.githubusercontent.com/Blissful4992/ESPs/refs/heads/main/2D%20Box%20ESP/ESP%20%2B%20Health%20Bars.lua"))()
+-- WalkSpeed function
+local function updateWalkSpeed()
+    if Player.Character and Player.Character:FindFirstChild("Humanoid") then
+        if walkspeedEnabled then
+            Player.Character.Humanoid.WalkSpeed = originalWalkSpeed + 10
+        else
+            Player.Character.Humanoid.WalkSpeed = originalWalkSpeed
+        end
+    end
 end
 
+local function WalkSpeed()
+    walkspeedEnabled = not walkspeedEnabled
+    WalkSpeedButton.Text = "+10 WalkSpeed: " .. (walkspeedEnabled and "ON" or "OFF")
+    
+    if walkspeedEnabled then
+        ShowPopup("WalkSpeed increased by 10!", Color3.fromRGB(0, 150, 0))
+        
+        -- Store original walk speed
+        if Player.Character and Player.Character:FindFirstChild("Humanoid") then
+            originalWalkSpeed = Player.Character.Humanoid.WalkSpeed
+        end
+        
+        updateWalkSpeed()
+        
+        if walkspeedConnection then
+            walkspeedConnection:Disconnect()
+        end
+        
+        -- Listen for character changes
+        walkspeedConnection = Player.CharacterAdded:Connect(function(character)
+            character:WaitForChild("Humanoid")
+            if walkspeedEnabled then
+                originalWalkSpeed = character.Humanoid.WalkSpeed
+                character.Humanoid.WalkSpeed = originalWalkSpeed + 10
+            else
+                character.Humanoid.WalkSpeed = originalWalkSpeed
+            end
+        end)
+    else
+        ShowPopup("WalkSpeed reset to normal!", Color3.fromRGB(150, 0, 0))
+        updateWalkSpeed()
+        
+        if walkspeedConnection then
+            walkspeedConnection:Disconnect()
+            walkspeedConnection = nil
+        end
+    end
+end
+
+-- Auto Guns function (collect only, no equip)
+local function AutoGuns()
+    autoGunsEnabled = not autoGunsEnabled
+    AutoGunsButton.Text = "Auto Guns: " .. (autoGunsEnabled and "ON" or "OFF")
+    
+    if autoGunsEnabled then
+        ShowPopup("Auto Guns enabled!", Color3.fromRGB(0, 150, 0))
+        
+        if autoGunsConnection then
+            autoGunsConnection:Disconnect()
+        end
+        
+        -- Only run when character is added (respawn)
+        autoGunsConnection = Player.CharacterAdded:Connect(function(character)
+            if autoGunsEnabled then
+                character:WaitForChild("Humanoid")
+                task.wait(3) -- Wait a bit after respawn
+                GetAllGuns() -- Only collect guns
+                -- AllGuns()  -- Not equipping automatically
+            end
+        end)
+    else
+        ShowPopup("Auto Guns disabled!", Color3.fromRGB(150, 0, 0))
+        if autoGunsConnection then
+            autoGunsConnection:Disconnect()
+            autoGunsConnection = nil
+        end
+    end
+end
+
+
+-- Kill Aura function
+local function KillAura()
+    killAuraEnabled = not killAuraEnabled
+    KillAuraButton.Text = "Kill Aura: " .. (killAuraEnabled and "ON" or "OFF")
+    
+    if killAuraEnabled then
+        ShowPopup("Kill Aura enabled!", Color3.fromRGB(0, 150, 0))
+        
+        if killAuraConnection then
+            killAuraConnection:Disconnect()
+        end
+        
+        killAuraConnection = RunService.Heartbeat:Connect(function()
+            if killAuraEnabled and Player.Character and Player.Character:FindFirstChild("HumanoidRootPart") then
+                for _, v in ipairs(game.Players:GetPlayers()) do
+                    if v ~= Player and v.Character and v.Character:FindFirstChild("HumanoidRootPart") and v.Character:FindFirstChild("Humanoid") then
+                        local distance = (Player.Character.HumanoidRootPart.Position - v.Character.HumanoidRootPart.Position).Magnitude
+                        if distance < 10 then -- Attack range
+                            game:GetService("ReplicatedStorage").meleeEvent:FireServer(v)
+                        end
+                    end
+                end
+            end
+        end)
+    else
+        ShowPopup("Kill Aura disabled!", Color3.fromRGB(150, 0, 0))
+        if killAuraConnection then
+            killAuraConnection:Disconnect()
+            killAuraConnection = nil
+        end
+    end
+end
+
+-- Connect button events
 AllGunsButton.MouseButton1Click:Connect(AllGuns)
 GetAllGunsButton.MouseButton1Click:Connect(GetAllGuns)
 JerkyButton.MouseButton1Click:Connect(function()
     loadstring(game:HttpGet("https://pastefy.app/wa3v2Vgm/raw"))()
+    ShowPopup("Jerky script loaded!", Color3.fromRGB(0, 150, 0))
 end)
 ESPButton.MouseButton1Click:Connect(LoadESP)
+WalkSpeedButton.MouseButton1Click:Connect(WalkSpeed)
+NoclipButton.MouseButton1Click:Connect(Noclip)
+AutoGunsButton.MouseButton1Click:Connect(AutoGuns)
+KillAuraButton.MouseButton1Click:Connect(KillAura)
 
+-- Dragging functionality
 local dragging, dragInput, dragStart, startPos
 local function update(input)
     local delta = input.Position - dragStart
@@ -235,40 +444,7 @@ UIS.InputChanged:Connect(function(input)
     end
 end)
 
-local function ShowPopup(text)
-    local popup = Instance.new("TextLabel")
-    popup.Size = UDim2.new(0, 250, 0, 60)
-    popup.Position = UDim2.new(0.5, -125, 0, -70)
-    popup.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
-    popup.BorderSizePixel = 0
-    popup.Text = text
-    popup.TextColor3 = Color3.fromRGB(255, 255, 255)
-    popup.TextSize = 20
-    popup.Font = Enum.Font.GothamBold
-    popup.Parent = ScreenGui
-    popup.AnchorPoint = Vector2.new(0.5, 0)
-    popup.TextTransparency = 1
-    popup.BackgroundTransparency = 1
-
-    local TweenService = game:GetService("TweenService")
-    TweenService:Create(popup, TweenInfo.new(0.5), {
-        TextTransparency = 0,
-        BackgroundTransparency = 0.1,
-        Position = UDim2.new(0.5, -125, 0, 20)
-    }):Play()
-
-    task.wait(2.5)
-
-    TweenService:Create(popup, TweenInfo.new(0.5), {
-        TextTransparency = 1,
-        BackgroundTransparency = 1,
-        Position = UDim2.new(0.5, -125, 0, -70)
-    }):Play()
-
-    task.wait(1)
-    popup:Destroy()
-end
-
+-- Initial popup
 task.delay(0.5, function()
-    ShowPopup("shalom")
+    ShowPopup("Prison Life GUI Loaded!", Color3.fromRGB(30, 30, 150))
 end)
