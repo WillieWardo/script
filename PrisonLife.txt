@@ -1,15 +1,3 @@
-
---[[
- ___      _______  _______  _______  _   ___ 
-|   |    |       ||       ||       || | |   |
-|   |    |   ____||___    ||   ____|| |_|   |
-|   |    |  |____  ___|   ||  |____ |       |
-|   |___ |_____  ||___    ||_____  ||___    |
-|       | _____| | ___|   | _____| |    |   |
-|_______||_______||_______||_______|    |___|
-]]
-
-
 local Player = game:GetService("Players").LocalPlayer
 local UIS = game:GetService("UserInputService")
 local CoreGui = game:GetService("CoreGui")
@@ -37,6 +25,39 @@ TitleBar.Position = UDim2.new(0, 0, 0, 0)
 TitleBar.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
 TitleBar.BorderSizePixel = 0
 TitleBar.Parent = MainFrame
+
+-- RGB line under the title
+local RGBLine = Instance.new("Frame")
+RGBLine.Name = "RGBLine"
+RGBLine.Size = UDim2.new(1, 0, 0, 2) -- thin horizontal line
+RGBLine.Position = UDim2.new(0, 0, 1, 0)
+RGBLine.BorderSizePixel = 0
+RGBLine.BackgroundColor3 = Color3.fromRGB(255, 0, 0) -- start red
+RGBLine.Parent = TitleBar
+
+-- Smooth rainbow cycle
+task.spawn(function()
+    local TweenService = game:GetService("TweenService")
+    local colors = {
+        Color3.fromRGB(255, 0, 0),   -- Red
+        Color3.fromRGB(255, 127, 0), -- Orange
+        Color3.fromRGB(255, 255, 0), -- Yellow
+        Color3.fromRGB(0, 255, 0),   -- Green
+        Color3.fromRGB(0, 0, 255),   -- Blue
+        Color3.fromRGB(75, 0, 130),  -- Indigo
+        Color3.fromRGB(148, 0, 211), -- Violet
+    }
+
+    while true do
+        for _, col in ipairs(colors) do
+            TweenService:Create(RGBLine, TweenInfo.new(2, Enum.EasingStyle.Linear), {
+                BackgroundColor3 = col
+            }):Play()
+            task.wait(2)
+        end
+    end
+end)
+
 
 local TitleText = Instance.new("TextLabel")
 TitleText.Name = "TitleText"
