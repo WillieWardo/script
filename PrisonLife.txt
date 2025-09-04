@@ -1,17 +1,27 @@
+
+--[[
+ ___      _______  _______  _______  _   ___ 
+|   |    |       ||       ||       || | |   |
+|   |    |   ____||___    ||   ____|| |_|   |
+|   |    |  |____  ___|   ||  |____ |       |
+|   |___ |_____  ||___    ||_____  ||___    |
+|       | _____| | ___|   | _____| |    |   |
+|_______||_______||_______||_______|    |___|
+]]
+
+
 local Player = game:GetService("Players").LocalPlayer
 local UIS = game:GetService("UserInputService")
 local CoreGui = game:GetService("CoreGui")
 
--- Create main screen GUI
 local ScreenGui = Instance.new("ScreenGui")
 ScreenGui.Name = "PrisonLifeGUI"
 ScreenGui.Parent = CoreGui
 ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
 
--- Create main frame
 local MainFrame = Instance.new("Frame")
 MainFrame.Name = "MainFrame"
-MainFrame.Size = UDim2.new(0, 200, 0, 175) -- taller for 4 buttons
+MainFrame.Size = UDim2.new(0, 200, 0, 175)
 MainFrame.Position = UDim2.new(0.5, -100, 0.5, -87.5)
 MainFrame.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
 MainFrame.BorderSizePixel = 1
@@ -20,7 +30,6 @@ MainFrame.Active = true
 MainFrame.Draggable = true
 MainFrame.Parent = ScreenGui
 
--- Create title bar
 local TitleBar = Instance.new("Frame")
 TitleBar.Name = "TitleBar"
 TitleBar.Size = UDim2.new(1, 0, 0, 20)
@@ -29,20 +38,18 @@ TitleBar.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
 TitleBar.BorderSizePixel = 0
 TitleBar.Parent = MainFrame
 
--- Create title text
 local TitleText = Instance.new("TextLabel")
 TitleText.Name = "TitleText"
 TitleText.Size = UDim2.new(1, -25, 1, 0)
 TitleText.Position = UDim2.new(0, 5, 0, 0)
 TitleText.BackgroundTransparency = 1
-TitleText.Text = "Prison Life"
+TitleText.Text = "Prison Life by: L5354"
 TitleText.TextColor3 = Color3.fromRGB(255, 255, 255)
 TitleText.TextSize = 14
 TitleText.Font = Enum.Font.Gotham
 TitleText.TextXAlignment = Enum.TextXAlignment.Left
 TitleText.Parent = TitleBar
 
--- Create close button
 local CloseButton = Instance.new("TextButton")
 CloseButton.Name = "CloseButton"
 CloseButton.Size = UDim2.new(0, 20, 0, 20)
@@ -58,7 +65,6 @@ CloseButton.MouseButton1Click:Connect(function()
     ScreenGui:Destroy()
 end)
 
--- Create content frame
 local ContentFrame = Instance.new("Frame")
 ContentFrame.Name = "ContentFrame"
 ContentFrame.Size = UDim2.new(1, -10, 1, -30)
@@ -66,13 +72,11 @@ ContentFrame.Position = UDim2.new(0, 5, 0, 25)
 ContentFrame.BackgroundTransparency = 1
 ContentFrame.Parent = MainFrame
 
--- Create UIListLayout for buttons
 local UIListLayout = Instance.new("UIListLayout")
 UIListLayout.Padding = UDim.new(0, 5)
 UIListLayout.SortOrder = Enum.SortOrder.LayoutOrder
 UIListLayout.Parent = ContentFrame
 
--- Create buttons
 local function createButton(name, text, order)
     local button = Instance.new("TextButton")
     button.Name = name
@@ -92,9 +96,8 @@ end
 local AllGunsButton = createButton("AllGunsButton", "penis (lol)", 1)
 local GetAllGunsButton = createButton("GetAllGunsButton", "guns", 2)
 local JerkyButton = createButton("JerkyButton", "jerky", 3)
-local ESPButton = createButton("ESPButton", "ESP", 4) -- New ESP button
+local ESPButton = createButton("ESPButton", "ESP", 4)
 
--- Function to handle all guns
 local function AllGuns()
     wait(1)
     for i, v in pairs(Player.Character:GetChildren()) do
@@ -144,7 +147,6 @@ local function AllGuns()
     end
 end
 
--- Function to get all guns
 local function GetAllGuns()
     local gun_tbl = {["Parent"] = nil, ["Position"] = nil}
     local gun_names = {"Remington 870", "AK-47", "M9"}
@@ -165,20 +167,17 @@ local function GetAllGuns()
     end
 end
 
--- Function to load ESP
 local function LoadESP()
     loadstring(game:HttpGet("https://raw.githubusercontent.com/Blissful4992/ESPs/refs/heads/main/2D%20Box%20ESP/ESP%20%2B%20Health%20Bars.lua"))()
 end
 
--- Connect button clicks
 AllGunsButton.MouseButton1Click:Connect(AllGuns)
 GetAllGunsButton.MouseButton1Click:Connect(GetAllGuns)
 JerkyButton.MouseButton1Click:Connect(function()
     loadstring(game:HttpGet("https://pastefy.app/wa3v2Vgm/raw"))()
 end)
-ESPButton.MouseButton1Click:Connect(LoadESP) -- Connect ESP button
+ESPButton.MouseButton1Click:Connect(LoadESP)
 
--- Make window draggable
 local dragging, dragInput, dragStart, startPos
 local function update(input)
     local delta = input.Position - dragStart
@@ -215,7 +214,6 @@ UIS.InputChanged:Connect(function(input)
     end
 end)
 
--- Achievement style popup
 local function ShowPopup(text)
     local popup = Instance.new("TextLabel")
     popup.Size = UDim2.new(0, 250, 0, 60)
@@ -231,7 +229,6 @@ local function ShowPopup(text)
     popup.TextTransparency = 1
     popup.BackgroundTransparency = 1
 
-    -- Tween in
     local TweenService = game:GetService("TweenService")
     TweenService:Create(popup, TweenInfo.new(0.5), {
         TextTransparency = 0,
@@ -241,7 +238,6 @@ local function ShowPopup(text)
 
     task.wait(2.5)
 
-    -- Tween out
     TweenService:Create(popup, TweenInfo.new(0.5), {
         TextTransparency = 1,
         BackgroundTransparency = 1,
@@ -252,7 +248,6 @@ local function ShowPopup(text)
     popup:Destroy()
 end
 
--- Show welcome popup when UI is loaded
 task.delay(0.5, function()
     ShowPopup("shalom")
 end)
