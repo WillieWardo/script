@@ -1,0 +1,258 @@
+local Player = game:GetService("Players").LocalPlayer
+local UIS = game:GetService("UserInputService")
+local CoreGui = game:GetService("CoreGui")
+
+-- Create main screen GUI
+local ScreenGui = Instance.new("ScreenGui")
+ScreenGui.Name = "PrisonLifeGUI"
+ScreenGui.Parent = CoreGui
+ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+
+-- Create main frame
+local MainFrame = Instance.new("Frame")
+MainFrame.Name = "MainFrame"
+MainFrame.Size = UDim2.new(0, 200, 0, 175) -- taller for 4 buttons
+MainFrame.Position = UDim2.new(0.5, -100, 0.5, -87.5)
+MainFrame.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
+MainFrame.BorderSizePixel = 1
+MainFrame.BorderColor3 = Color3.fromRGB(80, 80, 80)
+MainFrame.Active = true
+MainFrame.Draggable = true
+MainFrame.Parent = ScreenGui
+
+-- Create title bar
+local TitleBar = Instance.new("Frame")
+TitleBar.Name = "TitleBar"
+TitleBar.Size = UDim2.new(1, 0, 0, 20)
+TitleBar.Position = UDim2.new(0, 0, 0, 0)
+TitleBar.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+TitleBar.BorderSizePixel = 0
+TitleBar.Parent = MainFrame
+
+-- Create title text
+local TitleText = Instance.new("TextLabel")
+TitleText.Name = "TitleText"
+TitleText.Size = UDim2.new(1, -25, 1, 0)
+TitleText.Position = UDim2.new(0, 5, 0, 0)
+TitleText.BackgroundTransparency = 1
+TitleText.Text = "Prison Life"
+TitleText.TextColor3 = Color3.fromRGB(255, 255, 255)
+TitleText.TextSize = 14
+TitleText.Font = Enum.Font.Gotham
+TitleText.TextXAlignment = Enum.TextXAlignment.Left
+TitleText.Parent = TitleBar
+
+-- Create close button
+local CloseButton = Instance.new("TextButton")
+CloseButton.Name = "CloseButton"
+CloseButton.Size = UDim2.new(0, 20, 0, 20)
+CloseButton.Position = UDim2.new(1, -20, 0, 0)
+CloseButton.BackgroundColor3 = Color3.fromRGB(200, 50, 50)
+CloseButton.BorderSizePixel = 0
+CloseButton.Text = "X"
+CloseButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+CloseButton.TextSize = 14
+CloseButton.Font = Enum.Font.Gotham
+CloseButton.Parent = TitleBar
+CloseButton.MouseButton1Click:Connect(function()
+    ScreenGui:Destroy()
+end)
+
+-- Create content frame
+local ContentFrame = Instance.new("Frame")
+ContentFrame.Name = "ContentFrame"
+ContentFrame.Size = UDim2.new(1, -10, 1, -30)
+ContentFrame.Position = UDim2.new(0, 5, 0, 25)
+ContentFrame.BackgroundTransparency = 1
+ContentFrame.Parent = MainFrame
+
+-- Create UIListLayout for buttons
+local UIListLayout = Instance.new("UIListLayout")
+UIListLayout.Padding = UDim.new(0, 5)
+UIListLayout.SortOrder = Enum.SortOrder.LayoutOrder
+UIListLayout.Parent = ContentFrame
+
+-- Create buttons
+local function createButton(name, text, order)
+    local button = Instance.new("TextButton")
+    button.Name = name
+    button.Size = UDim2.new(1, 0, 0, 30)
+    button.LayoutOrder = order
+    button.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
+    button.BorderSizePixel = 1
+    button.BorderColor3 = Color3.fromRGB(100, 100, 100)
+    button.Text = text
+    button.TextColor3 = Color3.fromRGB(255, 255, 255)
+    button.TextSize = 14
+    button.Font = Enum.Font.Gotham
+    button.Parent = ContentFrame
+    return button
+end
+
+local AllGunsButton = createButton("AllGunsButton", "penis (lol)", 1)
+local GetAllGunsButton = createButton("GetAllGunsButton", "guns", 2)
+local JerkyButton = createButton("JerkyButton", "jerky", 3)
+local ESPButton = createButton("ESPButton", "ESP", 4) -- New ESP button
+
+-- Function to handle all guns
+local function AllGuns()
+    wait(1)
+    for i, v in pairs(Player.Character:GetChildren()) do
+        if v:IsA("Tool") then
+            v.Parent = Player.Backpack
+        end
+    end
+
+    wait(0.5)
+    if Player.Backpack:FindFirstChild("M9") then
+        Player.Backpack.M9.Parent = Player.Character
+    end
+    if Player.Backpack:FindFirstChild("AK-47") then
+        Player.Backpack["AK-47"].Parent = Player.Character
+    end
+    if Player.Backpack:FindFirstChild("Remington 870") then
+        Player.Backpack["Remington 870"].Parent = Player.Character
+    end
+
+    wait()
+    if Player.Character:FindFirstChild("M9") then
+        Player.Character.M9.GripPos = Vector3.new(0.9, 2, 0)
+    end
+    if Player.Character:FindFirstChild("Remington 870") then
+        Player.Character["Remington 870"].GripPos = Vector3.new(0.9, 2, 2.1)
+    end
+    if Player.Character:FindFirstChild("AK-47") then
+        Player.Character["AK-47"].GripPos = Vector3.new(0.9, 2, 6.4)
+    end
+
+    wait()
+    for i, v in pairs(Player.Character:GetChildren()) do
+        if v:IsA("Tool") then
+            v.Parent = Player.Backpack
+        end
+    end
+
+    wait()
+    if Player.Backpack:FindFirstChild("M9") then
+        Player.Backpack.M9.Parent = Player.Character
+    end
+    if Player.Backpack:FindFirstChild("AK-47") then
+        Player.Backpack["AK-47"].Parent = Player.Character
+    end
+    if Player.Backpack:FindFirstChild("Remington 870") then
+        Player.Backpack["Remington 870"].Parent = Player.Character
+    end
+end
+
+-- Function to get all guns
+local function GetAllGuns()
+    local gun_tbl = {["Parent"] = nil, ["Position"] = nil}
+    local gun_names = {"Remington 870", "AK-47", "M9"}
+
+    local function get_gun(gun)
+        while not Player.Backpack:FindFirstChild(gun) do
+            if Player.Character and Player.Character:FindFirstChild("HumanoidRootPart") then
+                gun_tbl.Parent = workspace.Prison_ITEMS.giver:FindFirstChild(gun)
+                gun_tbl.Position = Player.Character.HumanoidRootPart.Position
+                workspace.Remote.ItemHandler:InvokeServer(gun_tbl)
+            end
+            task.wait(0.1)
+        end
+    end
+
+    for _, gun in pairs(gun_names) do
+        get_gun(gun)
+    end
+end
+
+-- Function to load ESP
+local function LoadESP()
+    loadstring(game:HttpGet("https://raw.githubusercontent.com/Blissful4992/ESPs/refs/heads/main/2D%20Box%20ESP/ESP%20%2B%20Health%20Bars.lua"))()
+end
+
+-- Connect button clicks
+AllGunsButton.MouseButton1Click:Connect(AllGuns)
+GetAllGunsButton.MouseButton1Click:Connect(GetAllGuns)
+JerkyButton.MouseButton1Click:Connect(function()
+    loadstring(game:HttpGet("https://pastefy.app/wa3v2Vgm/raw"))()
+end)
+ESPButton.MouseButton1Click:Connect(LoadESP) -- Connect ESP button
+
+-- Make window draggable
+local dragging, dragInput, dragStart, startPos
+local function update(input)
+    local delta = input.Position - dragStart
+    MainFrame.Position = UDim2.new(
+        startPos.X.Scale,
+        startPos.X.Offset + delta.X,
+        startPos.Y.Scale,
+        startPos.Y.Offset + delta.Y
+    )
+end
+
+TitleBar.InputBegan:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 then
+        dragging = true
+        dragStart = input.Position
+        startPos = MainFrame.Position
+        input.Changed:Connect(function()
+            if input.UserInputState == Enum.UserInputState.End then
+                dragging = false
+            end
+        end)
+    end
+end)
+
+TitleBar.InputChanged:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseMovement then
+        dragInput = input
+    end
+end)
+
+UIS.InputChanged:Connect(function(input)
+    if input == dragInput and dragging then
+        update(input)
+    end
+end)
+
+-- Achievement style popup
+local function ShowPopup(text)
+    local popup = Instance.new("TextLabel")
+    popup.Size = UDim2.new(0, 250, 0, 60)
+    popup.Position = UDim2.new(0.5, -125, 0, -70)
+    popup.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+    popup.BorderSizePixel = 0
+    popup.Text = text
+    popup.TextColor3 = Color3.fromRGB(255, 255, 255)
+    popup.TextSize = 20
+    popup.Font = Enum.Font.GothamBold
+    popup.Parent = ScreenGui
+    popup.AnchorPoint = Vector2.new(0.5, 0)
+    popup.TextTransparency = 1
+    popup.BackgroundTransparency = 1
+
+    -- Tween in
+    local TweenService = game:GetService("TweenService")
+    TweenService:Create(popup, TweenInfo.new(0.5), {
+        TextTransparency = 0,
+        BackgroundTransparency = 0.1,
+        Position = UDim2.new(0.5, -125, 0, 20)
+    }):Play()
+
+    task.wait(2.5)
+
+    -- Tween out
+    TweenService:Create(popup, TweenInfo.new(0.5), {
+        TextTransparency = 1,
+        BackgroundTransparency = 1,
+        Position = UDim2.new(0.5, -125, 0, -70)
+    }):Play()
+
+    task.wait(1)
+    popup:Destroy()
+end
+
+-- Show welcome popup when UI is loaded
+task.delay(0.5, function()
+    ShowPopup("shalom")
+end)
