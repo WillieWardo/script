@@ -3,6 +3,8 @@ local UIS = game:GetService("UserInputService")
 local CoreGui = game:GetService("CoreGui")
 local RunService = game:GetService("RunService")
 local TweenService = game:GetService("TweenService")
+local Players = game:GetService("Players")
+local TeleportService = game:GetService("TeleportService")
 
 -- Create main GUI
 local ScreenGui = Instance.new("ScreenGui")
@@ -12,8 +14,8 @@ ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
 
 local MainFrame = Instance.new("Frame")
 MainFrame.Name = "MainFrame"
-MainFrame.Size = UDim2.new(0, 200, 0, 310)
-MainFrame.Position = UDim2.new(0.5, -100, 0.5, -130)
+MainFrame.Size = UDim2.new(0, 200, 0, 545) -- Increased height for new buttons
+MainFrame.Position = UDim2.new(0.5, -100, 0.5, -272.5)
 MainFrame.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
 MainFrame.BorderSizePixel = 1
 MainFrame.BorderColor3 = Color3.fromRGB(80, 80, 80)
@@ -38,8 +40,8 @@ RGBLine.BorderSizePixel = 0
 RGBLine.BackgroundColor3 = Color3.fromRGB(255, 0, 0)
 RGBLine.Parent = TitleBar
 
--- Smooth rainbow cycle
-task.spawn(function()
+-- Smooth rainbow cycle function
+local function startRainbowCycle(object, isText)
     local colors = {
         Color3.fromRGB(255, 0, 0),   -- Red
         Color3.fromRGB(255, 127, 0), -- Orange
@@ -50,15 +52,30 @@ task.spawn(function()
         Color3.fromRGB(148, 0, 211), -- Violet
     }
 
-    while true do
-        for _, col in ipairs(colors) do
-            TweenService:Create(RGBLine, TweenInfo.new(2, Enum.EasingStyle.Linear), {
-                BackgroundColor3 = col
-            }):Play()
-            task.wait(2)
+    task.spawn(function()
+        while object and object.Parent do
+            for _, col in ipairs(colors) do
+                if object and object.Parent then
+                    if isText then
+                        TweenService:Create(object, TweenInfo.new(2, Enum.EasingStyle.Linear), {
+                            TextColor3 = col
+                        }):Play()
+                    else
+                        TweenService:Create(object, TweenInfo.new(2, Enum.EasingStyle.Linear), {
+                            BackgroundColor3 = col
+                        }):Play()
+                    end
+                    task.wait(2)
+                else
+                    break
+                end
+            end
         end
-    end
-end)
+    end)
+end
+
+-- Start rainbow cycle for the line
+startRainbowCycle(RGBLine, false)
 
 local TitleText = Instance.new("TextLabel")
 TitleText.Name = "TitleText"
@@ -71,6 +88,9 @@ TitleText.TextSize = 14
 TitleText.Font = Enum.Font.Gotham
 TitleText.TextXAlignment = Enum.TextXAlignment.Left
 TitleText.Parent = TitleBar
+
+-- Start rainbow cycle for the title text
+startRainbowCycle(TitleText, true)
 
 local CloseButton = Instance.new("TextButton")
 CloseButton.Name = "CloseButton"
@@ -104,11 +124,37 @@ local noclipEnabled = false
 local walkspeedEnabled = false
 local autoGunsEnabled = false
 local killAuraEnabled = false
+local espEnabled = false
+local respawnAtDeathEnabled = false
 local originalWalkSpeed = 16
 local noclipConnection = nil
 local killAuraConnection = nil
 local walkspeedConnection = nil
 local autoGunsConnection = nil
+local killAuraVisual = nil
+local espHighlights = {}
+local respawnConnection = nil
+local deathPosition = nil
+local espConnections = {}
+
+-- Create category labels with RGB text
+local function createCategoryLabel(text, order)
+    local label = Instance.new("TextLabel")
+    label.Name = text .. "Category"
+    label.Size = UDim2.new(1, 0, 0, 20)
+    label.LayoutOrder = order
+    label.BackgroundTransparency = 1
+    label.Text = "--- " .. text .. " ---"
+    label.TextColor3 = Color3.fromRGB(255, 0, 0)
+    label.TextSize = 14
+    label.Font = Enum.Font.GothamBold
+    label.Parent = ContentFrame
+    
+    -- Start rainbow cycle for the category text
+    startRainbowCycle(label, true)
+    
+    return label
+end
 
 local function createButton(name, text, order)
     local button = Instance.new("TextButton")
@@ -126,15 +172,27 @@ local function createButton(name, text, order)
     return button
 end
 
--- Create all buttons
-local AllGunsButton = createButton("AllGunsButton", "penis (lol)", 1)
-local GetAllGunsButton = createButton("GetAllGunsButton", "Get All Guns", 2)
-local JerkyButton = createButton("JerkyButton", "Jerky Script", 3)
-local ESPButton = createButton("ESPButton", "ESP", 4)
-local WalkSpeedButton = createButton("WalkSpeedButton", "+10 WalkSpeed: OFF", 5)
-local NoclipButton = createButton("NoclipButton", "Noclip: OFF", 6)
-local AutoGunsButton = createButton("AutoGunsButton", "Auto Guns: OFF", 7)
-local KillAuraButton = createButton("KillAuraButton", "Kill Aura: OFF", 8)
+-- Create category labels and buttons in organized groups
+local GunsCategory = createCategoryLabel("GUNS", 1)
+local AllGunsButton = createButton("AllGunsButton", "Equip All Guns", 2)
+local GetAllGunsButton = createButton("GetAllGunsButton", "Get All Guns", 3)
+local AutoGunsButton = createButton("AutoGunsButton", "Auto Guns: OFF", 4)
+
+local CombatCategory = createCategoryLabel("COMBAT", 5)
+local KillAuraButton = createButton("KillAuraButton", "Kill Aura: OFF", 6)
+local BatButton = createButton("BatButton", "Spawn Bat", 7)
+
+local MovementCategory = createCategoryLabel("MOVEMENT", 8)
+local WalkSpeedButton = createButton("WalkSpeedButton", "+10 WalkSpeed: OFF", 9)
+local NoclipButton = createButton("NoclipButton", "Noclip: OFF", 10)
+
+local VisualCategory = createCategoryLabel("VISUAL", 11)
+local ESPButton = createButton("ESPButton", "ESP: OFF", 12)
+
+local MiscCategory = createCategoryLabel("MISC", 13)
+local JerkyButton = createButton("JerkyButton", "Jerky Script", 14)
+local RespawnAtDeathButton = createButton("RespawnAtDeathButton", "Respawn At Death: OFF", 15)
+local RejoinButton = createButton("RejoinButton", "Rejoin Server", 16)
 
 -- Popup function
 local function ShowPopup(text, color)
@@ -244,10 +302,101 @@ local function GetAllGuns()
     ShowPopup("All guns collected successfully!", Color3.fromRGB(0, 150, 0))
 end
 
--- ESP function
-local function LoadESP()
-    loadstring(game:HttpGet("https://raw.githubusercontent.com/Blissful4992/ESPs/refs/heads/main/2D%20Box%20ESP/ESP%20%2B%20Health%20Bars.lua"))()
-    ShowPopup("ESP loaded successfully!", Color3.fromRGB(0, 150, 0))
+-- ESP function with team-colored outlines
+local function createESP(player)
+    if player == Player then return end
+    
+    local function addHighlight(character)
+        if not character or not character:FindFirstChild("Humanoid") then return end
+        
+        -- Remove existing highlight if any
+        if espHighlights[player] then
+            espHighlights[player]:Destroy()
+            espHighlights[player] = nil
+        end
+        
+        -- Create a highlight for the player
+        local highlight = Instance.new("Highlight")
+        highlight.Name = "ESP_Highlight"
+        highlight.Adornee = character
+        highlight.DepthMode = Enum.HighlightDepthMode.AlwaysOnTop
+        highlight.FillTransparency = 1
+        highlight.OutlineColor = player.TeamColor.Color
+        highlight.Parent = character
+        
+        espHighlights[player] = highlight
+    end
+    
+    -- Add highlight to current character
+    if player.Character then
+        addHighlight(player.Character)
+    end
+    
+    -- Listen for character changes
+    if not espConnections[player] then
+        espConnections[player] = player.CharacterAdded:Connect(function(character)
+            task.wait(1) -- Wait for character to load
+            addHighlight(character)
+        end)
+    end
+end
+
+local function removeESP(player)
+    if espHighlights[player] then
+        espHighlights[player]:Destroy()
+        espHighlights[player] = nil
+    end
+    
+    if espConnections[player] then
+        espConnections[player]:Disconnect()
+        espConnections[player] = nil
+    end
+end
+
+local function ToggleESP()
+    espEnabled = not espEnabled
+    ESPButton.Text = "ESP: " .. (espEnabled and "ON" or "OFF")
+    
+    if espEnabled then
+        ShowPopup("ESP enabled!", Color3.fromRGB(0, 150, 0))
+        
+        -- Create ESP for all existing players
+        for _, player in ipairs(Players:GetPlayers()) do
+            createESP(player)
+        end
+        
+        -- Listen for new players
+        if not espConnections["PlayerAdded"] then
+            espConnections["PlayerAdded"] = Players.PlayerAdded:Connect(function(player)
+                createESP(player)
+            end)
+        end
+        
+        -- Listen for players leaving
+        if not espConnections["PlayerRemoving"] then
+            espConnections["PlayerRemoving"] = Players.PlayerRemoving:Connect(function(player)
+                removeESP(player)
+            end)
+        end
+    else
+        ShowPopup("ESP disabled!", Color3.fromRGB(150, 0, 0))
+        
+        -- Clean up all ESP highlights and connections
+        for _, player in ipairs(Players:GetPlayers()) do
+            removeESP(player)
+        end
+        
+        -- Disconnect global connections
+        if espConnections["PlayerAdded"] then
+            espConnections["PlayerAdded"]:Disconnect()
+            espConnections["PlayerAdded"] = nil
+        end
+        
+        if espConnections["PlayerRemoving"] then
+            espConnections["PlayerRemoving"]:Disconnect()
+            espConnections["PlayerRemoving"] = nil
+        end
+    end
 end
 
 -- Noclip function
@@ -360,8 +509,7 @@ local function AutoGuns()
     end
 end
 
-
--- Kill Aura function
+-- Kill Aura function with visual indicator
 local function KillAura()
     killAuraEnabled = not killAuraEnabled
     KillAuraButton.Text = "Kill Aura: " .. (killAuraEnabled and "ON" or "OFF")
@@ -369,12 +517,37 @@ local function KillAura()
     if killAuraEnabled then
         ShowPopup("Kill Aura enabled!", Color3.fromRGB(0, 150, 0))
         
+        -- Create visual indicator
+        if killAuraVisual then
+            killAuraVisual:Destroy()
+        end
+        
+        killAuraVisual = Instance.new("Part")
+        killAuraVisual.Shape = Enum.PartType.Ball
+        killAuraVisual.Size = Vector3.new(20, 20, 20)
+        killAuraVisual.Transparency = 0.7
+        killAuraVisual.Material = Enum.Material.Neon
+        killAuraVisual.Color = Color3.fromRGB(255, 0, 0)
+        killAuraVisual.CanCollide = false
+        killAuraVisual.Anchored = true
+        killAuraVisual.Parent = workspace
+        
+        -- Create outline
+        local outline = Instance.new("SelectionBox")
+        outline.Adornee = killAuraVisual
+        outline.LineThickness = 0.05
+        outline.Color3 = Color3.fromRGB(255, 0, 0)
+        outline.Parent = killAuraVisual
+        
         if killAuraConnection then
             killAuraConnection:Disconnect()
         end
         
         killAuraConnection = RunService.Heartbeat:Connect(function()
             if killAuraEnabled and Player.Character and Player.Character:FindFirstChild("HumanoidRootPart") then
+                -- Update visual position
+                killAuraVisual.Position = Player.Character.HumanoidRootPart.Position
+                
                 for _, v in ipairs(game.Players:GetPlayers()) do
                     if v ~= Player and v.Character and v.Character:FindFirstChild("HumanoidRootPart") and v.Character:FindFirstChild("Humanoid") then
                         local distance = (Player.Character.HumanoidRootPart.Position - v.Character.HumanoidRootPart.Position).Magnitude
@@ -391,6 +564,137 @@ local function KillAura()
             killAuraConnection:Disconnect()
             killAuraConnection = nil
         end
+        
+        if killAuraVisual then
+            killAuraVisual:Destroy()
+            killAuraVisual = nil
+        end
+    end
+end
+
+-- Bat function
+local function SpawnBat()
+    if not Player.Character or not Player.Character:FindFirstChild("Humanoid") then
+        ShowPopup("Character not ready!", Color3.fromRGB(150, 0, 0))
+        return
+    end
+    
+    local tool = Instance.new("Tool", Player.Backpack)
+    tool.GripPos = Vector3.new(0.1, -1, 0)
+    tool.Name = "Bat"
+    tool.RequiresHandle = false
+    
+    local handle = Instance.new("Part", tool)
+    handle.Name = "Handle"
+    handle.Size = Vector3.new(0.4, 4, 0.4)
+    handle.Transparency = 1  -- Make handle invisible
+    
+    local animate = Instance.new("Animation", tool)
+    animate.AnimationId = "rbxassetid://218504594"
+    
+    local attacking = false
+    local activate = tool.Activated:Connect(function()
+        if not attacking then
+            attacking = true
+            local animtrack = Player.Character.Humanoid:LoadAnimation(animate)
+            animtrack:Play()
+            task.wait(.1)
+            attacking = false
+        end
+    end)
+    
+    local Touched = handle.Touched:Connect(function(part)
+        if attacking then
+            local human = part.Parent:FindFirstChild("Humanoid")
+            if human then
+                local plr = Players:FindFirstChild(part.Parent.Name)
+                if plr then
+                    for i = 1, 10 do
+                        game:GetService("ReplicatedStorage").meleeEvent:FireServer(plr)
+                    end
+                end
+            end
+        end
+    end)
+    
+    -- Clean up when character changes
+    local characterConnection
+    characterConnection = Player.CharacterAdded:Connect(function()
+        activate:Disconnect() 
+        Touched:Disconnect()
+        if tool then tool:Destroy() end
+        if animate then animate:Destroy() end
+        characterConnection:Disconnect()
+    end)
+    
+    ShowPopup("Bat spawned in backpack!", Color3.fromRGB(0, 150, 0))
+end
+
+-- Rejoin Server function
+local function RejoinServer()
+    ShowPopup("Rejoining server...", Color3.fromRGB(30, 30, 150))
+    
+    local placeId = game.PlaceId
+    local jobId = game.JobId
+    
+    TeleportService:TeleportToPlaceInstance(placeId, jobId, Player)
+end
+
+-- Respawn at death location function (permanent version)
+local function ToggleRespawnAtDeath()
+    respawnAtDeathEnabled = not respawnAtDeathEnabled
+    RespawnAtDeathButton.Text = "Respawn At Death: " .. (respawnAtDeathEnabled and "ON" or "OFF")
+    
+    if respawnAtDeathEnabled then
+        ShowPopup("Respawn at death enabled!", Color3.fromRGB(0, 150, 0))
+        
+        if respawnConnection then
+            respawnConnection:Disconnect()
+        end
+        
+        -- Track when player dies
+        local function onCharacterAdded(character)
+            if deathPosition then
+                -- Wait for character to fully load
+                character:WaitForChild("HumanoidRootPart")
+                task.wait(0.5)
+                
+                -- Teleport to death location
+                character.HumanoidRootPart.CFrame = CFrame.new(deathPosition)
+                ShowPopup("Respawned at death location!", Color3.fromRGB(0, 150, 0))
+                -- Don't clear deathPosition so it works for future deaths
+            end
+        end
+        
+        -- Set up connection for current character
+        if Player.Character and Player.Character:FindFirstChild("Humanoid") then
+            Player.Character.Humanoid.Died:Connect(function()
+                if Player.Character and Player.Character:FindFirstChild("HumanoidRootPart") then
+                    deathPosition = Player.Character.HumanoidRootPart.Position
+                end
+            end)
+        end
+        
+        -- Set up connection for future characters
+        respawnConnection = Player.CharacterAdded:Connect(function(character)
+            character:WaitForChild("Humanoid")
+            character.Humanoid.Died:Connect(function()
+                if character and character:FindFirstChild("HumanoidRootPart") then
+                    deathPosition = character.HumanoidRootPart.Position
+                end
+            end)
+            
+            -- Also handle respawning for this new character
+            onCharacterAdded(character)
+        end)
+    else
+        ShowPopup("Respawn at death disabled!", Color3.fromRGB(150, 0, 0))
+        deathPosition = nil
+        
+        if respawnConnection then
+            respawnConnection:Disconnect()
+            respawnConnection = nil
+        end
     end
 end
 
@@ -401,11 +705,14 @@ JerkyButton.MouseButton1Click:Connect(function()
     loadstring(game:HttpGet("https://pastefy.app/wa3v2Vgm/raw"))()
     ShowPopup("Jerky script loaded!", Color3.fromRGB(0, 150, 0))
 end)
-ESPButton.MouseButton1Click:Connect(LoadESP)
+ESPButton.MouseButton1Click:Connect(ToggleESP)
 WalkSpeedButton.MouseButton1Click:Connect(WalkSpeed)
 NoclipButton.MouseButton1Click:Connect(Noclip)
 AutoGunsButton.MouseButton1Click:Connect(AutoGuns)
 KillAuraButton.MouseButton1Click:Connect(KillAura)
+BatButton.MouseButton1Click:Connect(SpawnBat)
+RejoinButton.MouseButton1Click:Connect(RejoinServer)
+RespawnAtDeathButton.MouseButton1Click:Connect(ToggleRespawnAtDeath)
 
 -- Dragging functionality
 local dragging, dragInput, dragStart, startPos
