@@ -174,7 +174,7 @@ end
 
 -- Create category labels and buttons in organized groups
 local GunsCategory = createCategoryLabel("GUNS", 1)
-local AllGunsButton = createButton("AllGunsButton", "Equip All Guns", 2)
+local AllGunsButton = createButton("AllGunsButton", "penis lol ", 2)
 local GetAllGunsButton = createButton("GetAllGunsButton", "Get All Guns", 3)
 local AutoGunsButton = createButton("AutoGunsButton", "Auto Guns: OFF", 4)
 
@@ -755,3 +755,4 @@ end)
 task.delay(0.5, function()
     ShowPopup("Prison Life GUI Loaded!", Color3.fromRGB(30, 30, 150))
 end)
+
