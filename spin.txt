@@ -1,57 +1,99 @@
-local LocalPlayer = game:GetService("Players").LocalPlayer
-local RunService = game:GetService("RunService")
+local TweenService = game:GetService("TweenService")
+local CoreGui = game:GetService("CoreGui")
 
--- Configuration for Prison Life tools
-local OrbitSettings = {
-    {"Keycard", 3, 2, 40, 0},    -- Close, high, fast orbit
-    {"M9", 4, 0, 25, 120},        -- Medium, waist level, medium speed
-    {"Taser", 5, -1, 15, 240}     -- Far, low, slow orbit
-}
 
-local ToolData = {}
-local connection
+local LoadingGui = Instance.new("ScreenGui")
+LoadingGui.Name = "LoadingScreen"
+LoadingGui.IgnoreGuiInset = true
+LoadingGui.Parent = CoreGui
+LoadingGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
 
-local function StopPrisonOrbit()
-    if connection then
-        connection:Disconnect()
-        connection = nil
-    end
-    for toolName, data in pairs(ToolData) do
-        if data.Tool and data.Tool.Parent then
-            data.Tool.Grip = CFrame.new() -- Reset grip
+
+local MainFrame = Instance.new("Frame")
+MainFrame.Size = UDim2.new(0, 250, 0, 150)
+MainFrame.Position = UDim2.new(0.5, -125, 0.5, -75)
+MainFrame.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
+MainFrame.BorderSizePixel = 1
+MainFrame.BorderColor3 = Color3.fromRGB(80, 80, 80)
+MainFrame.Parent = LoadingGui
+
+
+local TitleBar = Instance.new("Frame")
+TitleBar.Size = UDim2.new(1, 0, 0, 30)
+TitleBar.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+TitleBar.BorderSizePixel = 0
+TitleBar.Parent = MainFrame
+
+
+local TitleText = Instance.new("TextLabel")
+TitleText.Size = UDim2.new(1, -10, 1, 0)
+TitleText.Position = UDim2.new(0, 5, 0, 0)
+TitleText.BackgroundTransparency = 1
+TitleText.Text = "Prison Life Loader"
+TitleText.TextColor3 = Color3.fromRGB(255, 255, 255)
+TitleText.Font = Enum.Font.Gotham
+TitleText.TextSize = 16
+TitleText.TextXAlignment = Enum.TextXAlignment.Left
+TitleText.Parent = TitleBar
+
+local RGBLine = Instance.new("Frame")
+RGBLine.Size = UDim2.new(1, 0, 0, 2)
+RGBLine.Position = UDim2.new(0, 0, 1, 0)
+RGBLine.BorderSizePixel = 0
+RGBLine.BackgroundColor3 = Color3.fromRGB(255, 0, 0)
+RGBLine.Parent = TitleBar
+
+task.spawn(function()
+    local colors = {
+        Color3.fromRGB(255,0,0),
+        Color3.fromRGB(255,127,0),
+        Color3.fromRGB(255,255,0),
+        Color3.fromRGB(0,255,0),
+        Color3.fromRGB(0,0,255),
+        Color3.fromRGB(75,0,130),
+        Color3.fromRGB(148,0,211),
+    }
+    while LoadingGui.Parent do
+        for _, col in ipairs(colors) do
+            TweenService:Create(RGBLine, TweenInfo.new(0.8, Enum.EasingStyle.Linear), {
+                BackgroundColor3 = col
+            }):Play()
+            task.wait(0.8)
         end
     end
-    ToolData = {}
-end
+end)
 
-local function StartPrisonOrbit()
-    StopPrisonOrbit()
-    connection = RunService.RenderStepped:Connect(function(deltaTime)
-        local character = LocalPlayer.Character
-        if not character then return end
-        
-        for _, settings in ipairs(OrbitSettings) do
-            local toolName, radius, height, speed, offset = unpack(settings)
-            local tool = character:FindFirstChild(toolName) or LocalPlayer.Backpack:FindFirstChild(toolName)
-            
-            if tool and tool:IsA("Tool") then
-                if not ToolData[toolName] then
-                    ToolData[toolName] = { Tool = tool, Angle = offset }
-                    tool.Grip = CFrame.new(radius, height, 0)
-                end
-                ToolData[toolName].Angle = (ToolData[toolName].Angle + speed * deltaTime) % 360
-                local angleRad = math.rad(ToolData[toolName].Angle)
-                local x, z = math.cos(angleRad) * radius, math.sin(angleRad) * radius
-                tool.Grip = CFrame.new(x, height, z) * CFrame.Angles(0, angleRad, 0)
-            end
-        end
-    end)
-end
 
--- Auto-start when character loads
-LocalPlayer.CharacterAdded:Connect(StartPrisonOrbit)
-if LocalPlayer.Character then StartPrisonOrbit() end
+local BarBack = Instance.new("Frame")
+BarBack.Size = UDim2.new(0.8, 0, 0, 18)
+BarBack.Position = UDim2.new(0.1, 0, 0.6, 0)
+BarBack.BackgroundColor3 = Color3.fromRGB(60, 60, 60) -- grey
+BarBack.BorderSizePixel = 1
+BarBack.BorderColor3 = Color3.fromRGB(100, 100, 100) -- outline like script
+BarBack.Parent = MainFrame
 
--- Global functions to control the effect
-_G.StopPrisonOrbit = StopPrisonOrbit
-_G.StartPrisonOrbit = StartPrisonOrbit
+
+local BarFill = Instance.new("Frame")
+BarFill.Size = UDim2.new(0, 0, 1, 0)
+BarFill.BackgroundColor3 = Color3.fromRGB(100, 100, 100)
+BarFill.BorderSizePixel = 0
+BarFill.Parent = BarBack
+
+
+TweenService:Create(BarFill, TweenInfo.new(2, Enum.EasingStyle.Linear), {
+    Size = UDim2.new(1, 0, 1, 0)
+}):Play()
+
+
+task.delay(3, function()
+    -- Slide out left
+    TweenService:Create(MainFrame, TweenInfo.new(1, Enum.EasingStyle.Quad), {
+        Position = UDim2.new(-1, 0, 0.5, -75)
+    }):Play()
+
+    task.wait(1)
+    LoadingGui:Destroy()
+
+
+    loadstring(game:HttpGet("https://raw.githubusercontent.com/WillieWardo/script/refs/heads/main/PrisonLife.txt"))()
+end)
